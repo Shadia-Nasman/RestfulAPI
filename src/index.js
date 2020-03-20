@@ -1,71 +1,47 @@
 // Express Server
 import express from 'express';
-import cors from 'cors';
 
-import routes from './routes';
-import models from './models';
-import path from 'path';
-import users from './routes/users'  //breng users route from routes folder
 
 import mongoose from 'mongoose';
+const bodyparser=require('body-parser');
 
-const app = express(); //create instance from the server
-const port=process.env.port||3003;
+//const route=require("./routes/api");
+
+const app = express(); //setup express app
+app.use(bodyparser.json());
+const port=process.env.port||3000;
+
+///////////////////mongodb database connection
+const dburl='mongodb+srv://shadia:1988Shadia@cluster0-j5x8m.gcp.mongodb.net/booksapi';
+
+mongoose.connect(dburl, { useNewUrlParser: true });
+mongoose.set('useNewUrlParser', true);///to avoid url deprication
+
+mongoose.Promise=global.Promise;///to avoid url deprication
 
 
 // app.use(express.static('public'))//serve files in public folder
-// app.use('/static', express.static(path.join(__dirname, 'public')))//serve files in public folder
+
 
 //////////////express routing
 
 
-app.get('/', (req, res) => res.send('Hello World!'))
+app.get('/', (req, res) => res.send('Hello World!'));//main route
 
-app.post('/', (req, res)=>
-  res.send('Got a POST request')
-)
+app.use('/api',require("./routes/api"));//the customers route
 
-// app.use('/users',users) //breng users route from routes folder
 
+///error handling middleware
+app.use((err,req,res,next)=>{
+  console.log (err);
+  res.status(422).send({ERROR: err.message});//'422' unprocessable error : field required
+})
 
 ///////////////middleware
 
-app.use(function (req, res, next) {
-  console.log('Time:', Date.now())
-  next()
-})
-/////////////////
 
-app.get('/user/:id', function (req, res, next) {
-  res.send('USER')
-})
-//setup an error handler for 404: the source not found
-app.use((req, res, next)=> {
-  console.log('404')
-  // res.status(404).send("404: Sorry can't find that!")
-  res.sendFile('./errors/404.html')
-})
-
-
-//setup an error handler for 500: somthing going wrong on the server
-
-app.use((err, req, res, next) =>{
-  console.error(err.stack)
-  res.status(500).send('500: Something broken on the server!')
-
-})
-
-
-// Start Server
+// Start Server listen for requests
 app.listen({port}, () => console.log(`Example app listening on port ${port}!`));
-///////////////////mongodb database connection
-
-mongoose.connect('mongodb+srv://shadia:1988Shadia@cluster0-j5x8m.gcp.mongodb.net/test',{
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
- 
-});
-
 
 /* var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb+srv://shadia:1988Shadia@cluster0-j5x8m.gcp.mongodb.net/test"; */
@@ -145,22 +121,4 @@ MongoClient.connect(url, function(err, db) {
 ///////////////////mongodb databade
 
 
-// //////thijs code
-// // Application-Level Middleware
-// app.use((req, res, next) => {
-//   req.context = {
-//     models,
-//     me: models.users[1],
-//   };
-//   next();
-// });
-// app.use(cors());
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-
-// // Routes
-// app.use('/users', routes.users);
-// app.use('/messages', routes.messages);
-
-// //////thijs code
 
